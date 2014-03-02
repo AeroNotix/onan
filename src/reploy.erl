@@ -51,6 +51,8 @@ do_deploy(Endpoint, Metadata) ->
             {ok, proplists:get_value("location", RespHeaders)};
         409 ->
             {error, {conflict_detected, jsx:decode(Resp)}};
+        422 ->
+            {error, checksum_failure};
         _ ->
             {error, {unknown_error, Status}}
     end.
@@ -104,6 +106,12 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
                     io:format("Successfully deployed ~s. Artefact now "
                               "permanently lives at ~s.~n", [AppName,
                                                              ReployEndpoint ++ Location]),
+                    ok;
+                {error, checksum_mismatch} ->
+                    io:format("The server received a different "
+                              "checksum than what was calculated "
+                              "prior to sending. Try again, perh"
+                              "aps under a more secure connection~n"),
                     ok;
                 {error, {conflict_detected, Extra}} ->
                     Version = proplists:get_value(<<"version">>, Extra),
