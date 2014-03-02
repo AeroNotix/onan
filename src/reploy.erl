@@ -83,6 +83,7 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
                                               memory,
                                               {uncompress, [".beam", ".app"]}]),
             Payload = base64:encode(ZipBytes),
+            %% TODO: Make this MD5 or SHA1.
             Checksum = erlang:crc32(Payload),
             DeploymentMetadata =
                 [{<<"name">>, AppName},
