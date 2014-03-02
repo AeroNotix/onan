@@ -4,6 +4,11 @@ Reploy
 Reploy is a rebar plugin for creating *immutable*, *consistent* and
 *repeatable* builds.
 
+Server
+======
+
+[The server portion of this application lives here](https://github.com/AeroNotix/reploy_server/)
+
 
 Problem
 =======
