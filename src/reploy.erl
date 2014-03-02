@@ -89,7 +89,7 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
 
             %% Create the human-readable md5 of the payload.
             << M: 128>> = crypto:hash(md5, Payload),
-            Checksum = integer_to_list(M, 16),
+            Checksum = list_to_binary(integer_to_list(M, 16)),
 
             DeploymentMetadata =
                 [{<<"namespace">>, Namespace},
