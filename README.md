@@ -23,7 +23,7 @@ the world out from under you. Here's why this doesn't work:
 * Tagging to a VCS tag, tags are *not* immutable. (git tag -d $TAG)
 * Tagging to a commit is one of the safest methods, but you are still
   at the whim of the maintainer to keep that branch / commit / etc
-  around forever. E.g. a commit is ephemeral in the fact of rebasing
+  around forever. E.g. a commit is ephemeral in the face of rebasing
   or branch deletion.
 
 
