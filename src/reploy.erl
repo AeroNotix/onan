@@ -45,12 +45,14 @@ do_deploy(Endpoint, Metadata) ->
     Headers = ["accept", AppJSON],
     Request = {URL, Headers, AppJSON, jsx:encode(Metadata)},
     Response = httpc:request(post, Request, [], []),
-    {ok, {{_HTTP, Status, _Msg}, _Headers, _Resp}} = Response,
+    {ok, {{_HTTP, Status, _Msg}, _Headers, Resp}} = Response,
     case Status of
         201 ->
             ok;
+        409 ->
+            {error, {conflict_detected, jsx:decode(Resp)}};
         _ ->
-            {error, {failed_to_deploy, Status}}
+            {error, {unknown_error, Status}}
     end.
 
 pre_deploy(_, _) ->
