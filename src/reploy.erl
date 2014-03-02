@@ -40,7 +40,7 @@ to_dep_list([{Namespace, Name, Vsn}|T], Acc) ->
     to_dep_list(T, [JSONDep|Acc]).
 
 do_deploy(Endpoint, Metadata) ->
-    URL = Endpoint ++ "artefact",
+    URL = Endpoint ++ "/artefact",
     AppJSON = "application/json",
     Headers = ["accept", AppJSON],
     Request = {URL, Headers, AppJSON, jsx:encode(Metadata)},
