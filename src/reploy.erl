@@ -2,22 +2,21 @@
 -compile(export_all).
 
 
-%% deps({config, _, Config, _, _, _, _}, _AppFile) ->
-%%     io:format("~p~n", [Config]),
-%%     ReployDeps     = proplists:get_value(reploy_deps, Config, []),
-%%     ReployEndpoint = proplists:get_value(reploy_endpoint, Config),
-%%     get_deps(ReployDeps, ReployEndpoint).
+deps({config, _, Config, _, _, _, _}, _AppFile) ->
+    ReployDeps     = proplists:get_value(reploy_deps, Config, []),
+    ReployEndpoint = proplists:get_value(reploy_endpoint, Config),
+    get_deps(ReployDeps, ReployEndpoint).
 
-%% get_deps(_, undefined) ->
-%%     io:format("Missing reploy endpoint. "
-%%               "Please supply an endpoint from which to retrieve "
-%%               "dependencies. e.g:~n\t"
-%%               "{reply_endpoint, \"http://foobar.com\"}~n");
-%% get_deps([], _) ->
-%%     io:format("No dependencies~n");
-%% get_deps(Dependencies, Endpoint) ->
-%%     [io:format("Retrieving: ~p~n", [Dep]) || Dep <- Dependencies],
-%%     ok.
+get_deps(_, undefined) ->
+    io:format("Missing reploy endpoint. "
+              "Please supply an endpoint from which to retrieve "
+              "dependencies. e.g:~n\t"
+              "{reply_endpoint, \"http://foobar.com\"}~n");
+get_deps([], _) ->
+    io:format("No dependencies~n");
+get_deps(Dependencies, _Endpoint) ->
+    [io:format("Retrieving: ~p~n", [Dep]) || Dep <- Dependencies],
+    ok.
 
 parse_vsn(Vsn) ->
     try
@@ -39,6 +38,25 @@ to_dep_list([{Namespace, Name, Vsn}|T], Acc) ->
                {<<"name">>, Name},
                {<<"version">>, list_to_binary(Vsn)}],
     to_dep_list(T, [JSONDep|Acc]).
+
+do_deploy(Endpoint, Metadata) ->
+    URL = Endpoint ++ "artefact",
+    AppJSON = "application/json",
+    Headers = ["accept", AppJSON],
+    Request = {URL, Headers, AppJSON, jsx:encode(Metadata)},
+    Response = httpc:request(post, Request, [], []),
+    {ok, {{_HTTP, Status, _Msg}, _Headers, _Resp}} = Response,
+    case Status of
+        201 ->
+            ok;
+        _ ->
+            {error, {failed_to_deploy, Status}}
+    end.
+
+pre_deploy(_, _) ->
+    %% Rebar doesn't call any application:start stuff for the plugins.
+    inets:start(),
+    ok.
 
 deploy({config, _, Config, _, _, _, _}, AppFile) ->
     %% The Dir passed to this handler seems to always be incorrect,
