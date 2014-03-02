@@ -87,10 +87,11 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
             Checksum = erlang:crc32(Payload),
             DeploymentMetadata =
                 [{<<"name">>, AppName},
-                 {<<"version">>, BinaryVsn},
-                 {<<"checksum">>, Checksum},
+                 {<<"version">>, Vsn},
                  {<<"dependencies">>, to_dep_list(ReployDeps)},
+                 {<<"description">>, Description},
+                 {<<"checksum">>, Checksum},
                  {<<"payload">>, Payload}],
-            jsx:encode(DeploymentMetadata)
+            do_deploy(ReployEndpoint, DeploymentMetadata)
     end,
     ok.
