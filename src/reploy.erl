@@ -68,9 +68,9 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
 
     {ok, [{application, AppName, AppFileContents}]}
         = file:consult(AppFile),
-    Vsn = proplists:get_value(vsn, AppFileContents),
-    BinaryVsn = list_to_binary(Vsn),
-    case parse_vsn(BinaryVsn) of
+    Vsn = list_to_binary(proplists:get_value(vsn, AppFileContents, "")),
+    Description = list_to_binary(proplists:get_value(description, AppFileContents, "")),
+    case parse_vsn(Vsn) of
         {error, _} ->
             %% We use semver, because reasons.
             io:format("The version supplied is invalid. "
