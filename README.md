@@ -16,7 +16,15 @@ Problem
 Rebar's current method of retrieving dependencies is completely and
 *utterly* broken. There is no semblence of repeatability. You cannot
 trust that between builds that the author of a project will not change
-the world out from under you.
+the world out from under you. Here's why this doesn't work:
+
+* tagging to a branch means that you always get the latest in that
+  branch.
+* Tagging to a VCS tag, tags are *not* immutable. (git tag -d $TAG)
+* Tagging to a commit is one of the safest methods, but you are still
+  at the whim of the maintainer to keep that branch / commit / etc
+  around forever. E.g. a commit is ephemeral in the fact of rebasing
+  or branch deletion.
 
 
 Solution
