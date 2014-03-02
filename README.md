@@ -44,7 +44,7 @@ exist in the system. (A problem solved in time)
 
 The server will not be a black box, currently no implementation of the
 server exists but
-[clear documentation for its API](http://docs.unfuckrebar.apiary.io/)
+[clear documentation for its API](http://docs.reploy.apiary.io/)
 exists on Apiary.io.
 
 How to use
