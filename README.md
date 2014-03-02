@@ -124,3 +124,9 @@ Unordered Goals
 * Remove irrelevant directories / files from artefacts.
 * C code needs some thoughts.
 * Arbitrary metadata (k/v).
+
+
+Inspiration
+-----------
+
+This was inspired by working with the awesomeness that is Lein.
