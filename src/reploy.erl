@@ -45,10 +45,10 @@ do_deploy(Endpoint, Metadata) ->
     Headers = ["accept", AppJSON],
     Request = {URL, Headers, AppJSON, jsx:encode(Metadata)},
     Response = httpc:request(post, Request, [], []),
-    {ok, {{_HTTP, Status, _Msg}, _Headers, Resp}} = Response,
+    {ok, {{_HTTP, Status, _Msg}, RespHeaders, Resp}} = Response,
     case Status of
-        201 ->
-            ok;
+        200 ->
+            {ok, proplists:get_value("location", RespHeaders)};
         409 ->
             {error, {conflict_detected, jsx:decode(Resp)}};
         _ ->
@@ -73,7 +73,7 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
     Vsn = list_to_binary(proplists:get_value(vsn, AppFileContents, "")),
     Description = list_to_binary(proplists:get_value(description, AppFileContents, "")),
     case parse_vsn(Vsn) of
-        {error, _} ->
+        {error, invalid_vsn} ->
             %% We use semver, because reasons.
             io:format("The version supplied is invalid. "
                       "Semantic versioning is required. "
@@ -94,6 +94,22 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
                  {<<"description">>, Description},
                  {<<"checksum">>, Checksum},
                  {<<"payload">>, Payload}],
-            do_deploy(ReployEndpoint, DeploymentMetadata)
-    end,
-    ok.
+            case do_deploy(ReployEndpoint, DeploymentMetadata) of
+                {ok, Location} ->
+                    io:format("Successfully deployed ~s. Artefact now "
+                              "permanently lives at ~s.~n", [AppName,
+                                                             ReployEndpoint ++ Location]),
+                    ok;
+                {error, {conflict_detected, Extra}} ->
+                    Version = proplists:get_value(<<"version">>, Extra),
+                    Name = proplists:get_value(<<"name">>, Extra),
+                    io:format("An artefact already exists with this "
+                              "metadata or an attempt to create a "
+                              "lower-versioned artefact was made.~n~n"
+                              "On Server:~n~n"
+                              "Version: ~p~n"
+                              "Name: ~p~n",
+                              [Version, Name]),
+                    {error, version_conflict}
+            end
+    end.
