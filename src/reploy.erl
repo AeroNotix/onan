@@ -119,7 +119,7 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
                               "metadata or an attempt to create a "
                               "lower-versioned artefact was made.~n~n"
                               "On Server:~n~n"
-                              "Version: ~p~n"
+                              "Version: ~p~n",
                               [Version]),
                     {error, version_conflict}
             end
