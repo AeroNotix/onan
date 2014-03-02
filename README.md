@@ -59,7 +59,6 @@ Deploying
 And then:
 
 ```shell
-
 $ rebar deploy
 ```
 
@@ -73,14 +72,12 @@ Specifying Dependencies
 You will need to include the `reploy_deps` field in your rebar.config file:
 
 ```erlang
-
 {reploy_deps, [{namespace, name, version}]}.
 ```
 
 The format is as such:
 
 ```erlang
-
 -type reploy_deps() :: [reploy_dep()].
 -type reploy_dep() :: {atom(), atom(), string()} |
                       {atom(), atom(), string(), string()}.
@@ -97,7 +94,6 @@ Where:
 Then in your shell run:
 
 ```shell
-
 $ rebar deps
 ```
 
