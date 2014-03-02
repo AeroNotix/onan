@@ -99,3 +99,28 @@ $ rebar deps
 
 Which will talk to the third party service you set up and retrieve all
 the dependencies.
+
+
+Unordered Goals
+---------------
+
+* Immutable artefacts.
+* Be transactional. No more partial downloads requiring a rm -rf of dependencies.
+    * Can be solved by hashing the final set of files and looking for this hash (and comparing) on next dependency run.
+* Initially just binary artefacts, *.ebin and prv/
+* Versioned artefacts.
+* Use rebar plugins as a bootstrap method (possible eventually a separate app)
+* Open deployment tool / open archival service.
+* Namespaced packages. (e.g. puzza/awesome_lib and rpt/awesome_lib )
+    * These are now two separate projects.
+* Projects under the same name mean that other projects with the same name *must* be forks.
+    * Need to think how to enforce that.
+    * Could require that similarly named projects have their source trees available to resolve
+      conflicts.
+* Automatic metadata gathering (erts version / etc).
+* Windows is not a target.
+* When in doubt, do what lein / mvn does.
+* Support releases. ( e.g. the whole release for an OTP application, such as Riak. )
+* Remove irrelevant directories / files from artefacts.
+* C code needs some thoughts.
+* Arbitrary metadata (k/v).
