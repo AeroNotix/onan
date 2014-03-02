@@ -1,0 +1,97 @@
+FORMAT: 1A
+HOST: http://www.google.com
+
+# unfuck-rebar
+Unfuck rebar is a tools for unfucking rebar. Duh.
+
+# artefact endpoint
+Notes related resources of the **Notes API**
+
+## Artefacts [/artefact]
+### List all artefacts [GET]
++ Response 200 (application/json)
+
+        [{
+          "id": 1, "name": "erlcql", "version": "0.0.1", "namespace": "rpt"
+        }, {
+          "id": 2, "name": "riak", "version": "1.9.0", "namespace": "basho"
+        }]
+
+### Create a artefact [POST]
++ Request (application/json)
+
+        {
+            "name": "erlcql",
+            "version": "0.0.2",
+            "description": "A library for interacting with Cassandra.",
+            "dependencies": [
+                {
+                    "namespace": "puzza007",
+                    "name": "a_dependency",
+                    "version": "0.0.4"
+                }
+            ],
+            "checksum": "bf1b57c493c54ad335ec051294b5cb4d",
+            "payload": "base64 encoded payload of ez package"
+        }
+        
++ Response 200 (application/json)
+
+    + Header
+        
+            Location: /deps/rpt/erlcql/0.0.2/
+    + Body
+    
+            {"success": true}
+
+# Dependencies [/deps]        
+### Retrieve dependency [GET]
++ Request (application/json)
+
+        {
+            "namespace": "rpt",
+            "name": "erlcql",
+            "version": 0.0.1"
+        }
+
++ Response 200 (application/json)
+
+        [
+            {
+                "name": "erlcql",
+                "version": "0.0.1",
+                "checksum": "bf1b57c493c54ad335ec051294b5cb4d",
+                "payload": "base64 encoded payload of ez package"
+            },
+            {
+                "name": "a_dependency",
+                "version": "0.4.0",
+                "checksum": "7a9c1d2a0f3a8db565b7e382ef5b1151",
+                "payload": "base64 encoded payload of ez package"
+            }
+        ]
+
+# Dependencies [/deps/:namespace/:name/:vsn]
+
++ Parameters
+    + namespace (required, string, `rpt`) ... Namespace for a repo
+    + name      (required, string, `erlcql`) ... Name of the repo
+    + vsn       (required, string, `0.0.1`) ... Version of this repos
+    
+### Retrieve dependency [GET]
++ Response 200 (application/json)
+
+        [
+            {
+                "name": "erlcql",
+                "version": "0.0.1",
+                "checksum": "bf1b57c493c54ad335ec051294b5cb4d",
+                "payload": "base64 encoded payload of ez package"
+            },
+            {
+                "name": "a_dependency",
+                "version": "0.4.0",
+                "checksum": "7a9c1d2a0f3a8db565b7e382ef5b1151",
+                "payload": "base64 encoded payload of ez package"
+            }
+        ]
