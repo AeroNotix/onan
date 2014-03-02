@@ -72,6 +72,7 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
         = file:consult(AppFile),
     Vsn = list_to_binary(proplists:get_value(vsn, AppFileContents, "")),
     Description = list_to_binary(proplists:get_value(description, AppFileContents, "")),
+    Namespace = list_to_binary(proplists:get_value(namespace, Config)),
     case parse_vsn(Vsn) of
         {error, invalid_vsn} ->
             %% We use semver, because reasons.
@@ -88,7 +89,8 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
             %% TODO: Make this MD5 or SHA1.
             Checksum = erlang:crc32(Payload),
             DeploymentMetadata =
-                [{<<"name">>, AppName},
+                [{<<"namespace">>, Namespace},
+                 {<<"name">>, AppName},
                  {<<"version">>, Vsn},
                  {<<"dependencies">>, to_dep_list(ReployDeps)},
                  {<<"description">>, Description},
