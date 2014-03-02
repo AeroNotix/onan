@@ -115,14 +115,12 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
                     ok;
                 {error, {conflict_detected, Extra}} ->
                     Version = proplists:get_value(<<"version">>, Extra),
-                    Name = proplists:get_value(<<"name">>, Extra),
                     io:format("An artefact already exists with this "
                               "metadata or an attempt to create a "
                               "lower-versioned artefact was made.~n~n"
                               "On Server:~n~n"
                               "Version: ~p~n"
-                              "Name: ~p~n",
-                              [Version, Name]),
+                              [Version]),
                     {error, version_conflict}
             end
     end.
