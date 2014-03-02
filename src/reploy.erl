@@ -86,8 +86,10 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
                                               memory,
                                               {uncompress, [".beam", ".app"]}]),
             Payload = base64:encode(ZipBytes),
-            %% TODO: Make this MD5 or SHA1.
-            Checksum = erlang:crc32(Payload),
+
+            %% Create the human-readable md5 of the payload.
+            << M: 128>> = crypto:hash(md5, Payload),
+            Checksum = integer_to_list(M, 16),
 
             DeploymentMetadata =
                 [{<<"namespace">>, Namespace},
