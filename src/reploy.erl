@@ -81,7 +81,7 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
                       "Please see: http://semver.org/");
         _ ->
             {ok, {_, ZipBytes}} = zip:create("",
-                                             [Dir],
+                                             ["../" ++ filename:basename(Dir)],
                                              [{compress, all},
                                               memory,
                                               {uncompress, [".beam", ".app"]}]),
