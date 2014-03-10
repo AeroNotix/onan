@@ -50,7 +50,7 @@ do_deploy(Endpoint, Metadata) ->
         200 ->
             {ok, proplists:get_value("location", RespHeaders)};
         409 ->
-            {error, {conflict_detected, jsx:decode(Resp)}};
+            {error, {conflict_detected, jsx:decode(erlang:list_to_binary(Resp))}};
         422 ->
             {error, checksum_failure};
         _ ->
