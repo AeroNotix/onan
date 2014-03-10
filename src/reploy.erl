@@ -118,9 +118,9 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
                     io:format("An artefact already exists with this "
                               "metadata or an attempt to create a "
                               "lower-versioned artefact was made.~n~n"
-                              "On Server:~n~n"
+                              "On Server: "
                               "Version: ~p~n",
-                              [Version]),
+                              [binary_to_list(Version)]),
                     {error, version_conflict}
             end
     end.
