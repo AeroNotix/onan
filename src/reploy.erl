@@ -49,6 +49,8 @@ do_deploy(Endpoint, Metadata) ->
     case Status of
         200 ->
             {ok, proplists:get_value("location", RespHeaders)};
+        404 ->
+            {error, {not_found, Resp}};
         409 ->
             {error, conflict_detected};
         422 ->
@@ -107,6 +109,13 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
                               "permanently lives at ~s.~n", [AppName,
                                                              ReployEndpoint ++ Location]),
                     ok;
+                {error, {not_found, Extra}} ->
+                    Error = proplists:get_value(<<"error">>,
+                                                jsx:decode(
+                                                  erlang:list_to_binary(Extra)
+                                                 )),
+                    io:format("Not found: ~p~n", [Error]),
+                    {error, not_found};
                 {error, checksum_mismatch} ->
                     io:format("The server received a different "
                               "checksum than what was calculated "
