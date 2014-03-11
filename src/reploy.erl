@@ -50,7 +50,7 @@ do_deploy(Endpoint, Metadata) ->
         200 ->
             {ok, proplists:get_value("location", RespHeaders)};
         409 ->
-            {error, {conflict_detected, jsx:decode(erlang:list_to_binary(Resp))}};
+            {error, conflict_detected};
         422 ->
             {error, checksum_failure};
         _ ->
@@ -113,14 +113,10 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
                               "prior to sending. Try again, perh"
                               "aps under a more secure connection~n"),
                     ok;
-                {error, {conflict_detected, Extra}} ->
-                    Version = proplists:get_value(<<"version">>, Extra),
+                {error, conflict_detected} ->
                     io:format("An artefact already exists with this "
                               "metadata or an attempt to create a "
-                              "lower-versioned artefact was made.~n~n"
-                              "On Server: "
-                              "Version: ~p~n",
-                              [binary_to_list(Version)]),
-                    {error, version_conflict}
+                              "lower-versioned artefact was made.~n~n"),
+                    {error, conflict_detected}
             end
     end.
