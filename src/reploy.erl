@@ -84,6 +84,7 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
                       "Semantic versioning is required. "
                       "Please see: http://semver.org/");
         _ ->
+            %% TODO: Make this better.
             {ok, {_, ZipBytes}} = zip:create("",
                                              ["../" ++ filename:basename(Dir)],
                                              [{compress, all},
