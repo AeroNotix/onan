@@ -92,6 +92,7 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
                                               {uncompress, [".beam", ".app"]}]),
             Payload = base64:encode(ZipBytes),
 
+            %% TODO: Make this better.
             %% Create the human-readable md5 of the payload.
             << M: 128>> = crypto:hash(md5, Payload),
             Checksum = list_to_binary(integer_to_list(M, 16)),
