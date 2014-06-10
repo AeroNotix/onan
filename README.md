@@ -52,8 +52,8 @@ How to use
 
 In your rebar.config you will need to include the base dependency to
 reploy as a regular rebar dependency, this is a bootstrapping
-intermediary fix and eventually reploy hopes to be its own
-application without the need to use rebar.
+intermediary fix and eventually reploy hopes to be its own application
+without the need to use rebar.
 
 
 Deploying
