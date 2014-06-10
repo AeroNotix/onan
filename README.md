@@ -132,6 +132,7 @@ Unordered Goals
 * Projects under the same name mean that other projects with the same
   name *must* be forks.
     * Need to think how to enforce that.
+    * Is this really necessary?
     * Could require that similarly named projects have their source
       trees available to resolve conflicts.
 * Automatic metadata gathering (erts version / etc).
