@@ -124,7 +124,10 @@ Unordered Goals
       this hash (and comparing) on next dependency run.
 * Versioned artefacts.
 * Use rebar plugins as a bootstrap method (possible eventually a
-  separate app)
+  separate app). Scratch this. A rebar plugin is a ridiculous notion
+  because:
+  * Rebar is extremely poorly coded.
+  * It uses strage semantics for calling into plugin code.
 * Open deployment tool / open archival service.
 * Namespaced packages. (e.g. puzza/awesome_lib and rpt/awesome_lib )
     * These are now two separate projects.
