@@ -13,9 +13,15 @@ get_deps(_, undefined) ->
               "dependencies. e.g:~n\t"
               "{reply_endpoint, \"http://foobar.com\"}~n");
 get_deps([], _) ->
-    io:format("No dependencies~n");
-get_deps(Dependencies, _Endpoint) ->
-    [io:format("Retrieving: ~p~n", [Dep]) || Dep <- Dependencies],
+    io:format("No dependencies.~n");
+get_deps(Dependencies, Endpoint) ->
+    [begin
+         io:format("Retrieving: ~p~n", [Dep]),
+         get_dep(Dep, Endpoint)
+     end || Dep <- Dependencies],
+    ok.
+
+get_dep(_Dep, _Endpoint) ->
     ok.
 
 parse_vsn(Vsn) ->
