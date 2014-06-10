@@ -122,7 +122,6 @@ Unordered Goals
   dependencies.
     * Can be solved by hashing the final set of files and looking for
       this hash (and comparing) on next dependency run.
-* Initially just binary artefacts, *.ebin and prv/
 * Versioned artefacts.
 * Use rebar plugins as a bootstrap method (possible eventually a
   separate app)
