@@ -33,13 +33,6 @@ parse_vsn(Vsn) ->
     end.
 
 
-make_dir(Dir) ->
-    case file:list_dir(Dir) of
-        {ok, _} ->
-            ok;
-        {error, enoent} ->
-            ok = file:make_dir(Dir)
-    end.
 
 to_dep_list([]) ->
     [];
@@ -167,12 +160,12 @@ package_project(Dir) ->
 
 save_project(ProjPkg, Dir, Vsn) ->
     FinalPath = filename:join(Dir, Vsn),
-    case file:list_dir(FinalPath) of
-        {ok, _} ->
+    case filelib:is_dir(FinalPath) of
+        true ->
             io:format("ERROR: Project already exists on filesystem "
                       "refusing to overwrite");
-        {error, enoent} ->
-            ok = make_dir(FinalPath),
+        false ->
+            ok = filelib:ensure_dir(FinalPath),
             OutPkg = filename:join(FinalPath, "code.zip"),
             ok = file:write_file(OutPkg, ProjPkg)
     end.
@@ -185,9 +178,8 @@ main(["install"]) ->
     case os:getenv("HOME") of
         HomeDir when is_list(HomeDir) ->
             OnanHome = filename:join(HomeDir, ".onan"),
-            ProjDir    = filename:join(OnanHome, ProjName),
-            ok = make_dir(OnanHome),
-            ok = make_dir(ProjDir),
+            ProjDir = filename:join(OnanHome, ProjName),
+            ok = filelib:ensure_dir(ProjDir),
             ProjPkg = package_project(Dir),
             ok = save_project(ProjPkg, ProjDir, Vsn)
 
