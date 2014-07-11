@@ -163,7 +163,6 @@ main(["install"]) ->
             ok = filelib:ensure_dir(ProjDir),
             ProjPkg = package_project(Dir),
             ok = save_project(ProjPkg, ProjDir, Vsn)
-
     end;
 
 main(["deps"]) ->
