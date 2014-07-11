@@ -1,13 +1,13 @@
-Reploy
+Onan
 ======
 
-Reploy is a rebar plugin for creating *immutable*, *consistent* and
+Onan is an Erlang tool for creating *immutable*, *consistent* and
 *repeatable* builds.
 
 Server
 ======
 
-[The server portion of this application lives here](https://github.com/AeroNotix/reploy_server/)
+[The server portion of this application lives here](https://github.com/AeroNotix/onan_server/)
 
 
 Problem
@@ -44,61 +44,38 @@ exist in the system. (A problem solved in time)
 
 The server will not be a black box, currently no implementation of the
 server exists but
-[clear documentation for its API](http://docs.reploy.apiary.io/)
+[clear documentation for its API](http://docs.onan.apiary.io/)
 exists on Apiary.io.
 
 How to use
 ==========
 
-In your rebar.config you will need to include the base dependency to
-reploy as a regular rebar dependency, this is a bootstrapping
-intermediary fix and eventually reploy hopes to be its own application
-without the need to use rebar.
+Create an `onan.config` file which looks similar to:
 
+```erlang
+{name, "onan"}.
+{vsn, "0.0.1"}.
+{deps, [{"onan", "0.0.1"}]}.
+{onan_server, "http://localhost:8080"}.
+```
 
 Deploying
 ---------
 
-```erlang
-
-{plugins, [reploy]}.
-{plugin_dir, "deps/"}.
-%% If you are running your own reploy service, put its URI here.
-{reploy_endpoint, "http://unfuckrebar.apiary.io"}.
-{deps, [{reploy, ".*,
-          {git, "http://github.com/AeroNotix/reploy.git", {tag, "0.0.1"}}}]}.
-```
-
-And then:
-
-```shell
-$ rebar deploy
-```
-
-This will read your app.src file and retrieve any metadata about your
-project and include it into the hosted EZ file.
-
+TBD
 
 Specifying Dependencies
 -----------------------
 
-You will need to include the `reploy_deps` field in your rebar.config file:
+You will need to include the `deps` field in your onan.config file:
 
 ```erlang
-{reploy_deps, [{namespace, name, version}]}.
+{deps, [{"name", "version"}]}.
 ```
 
-The format is as such:
-
-```erlang
--type reploy_deps() :: [reploy_dep()].
--type reploy_dep() :: {atom(), atom(), string()} |
-                      {atom(), atom(), string(), string()}.
-```
 
 Where:
 
-* Namespace is usually the name of the user who uploaded the artefact.
 * Name is the name of the project you want to specify a dependency on.
 * Version which is in [semver format](http://semver.org/).
 * Optionally, you can specify a separate remote host to retrieve your
