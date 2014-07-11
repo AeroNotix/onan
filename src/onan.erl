@@ -23,10 +23,11 @@ to_dep_list([{Namespace, Name, Vsn}|T], Acc) ->
                {<<"version">>, list_to_binary(Vsn)}],
     to_dep_list(T, [JSONDep|Acc]).
 
-copy_dep(DepName, A, B, To) ->
-    OutDep = onan_file:join_paths(To, ["deps", DepName, "code.zip"]),
+copy_dep(DepName, FromDep, _, To) ->
+    DepCode = filename:join(FromDep, "code.zip"),
+    OutDep = onan_file:join_paths(To, ["deps", DepName]),
     ok = filelib:ensure_dir(OutDep),
-    io:format("~p / ~p / ~p / ~p~n", [A, B, To, OutDep]).
+    zip:unzip(DepCode, [{cwd, OutDep}]).
 
 create_local_paths([]) ->
     [];
@@ -173,6 +174,6 @@ main(["deps"]) ->
     [begin
          case filelib:is_dir(DepDir) of
              true ->
-                 ok = copy_dep(DepName, DepDir, DepVsn, Dir)
+                 {ok, _} = copy_dep(DepName, DepDir, DepVsn, Dir)
          end
      end || {DepName, DepVsn, DepDir} <- LocalPaths].
