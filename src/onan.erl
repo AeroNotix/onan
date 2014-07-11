@@ -32,10 +32,6 @@ parse_vsn(Vsn) ->
             {error, invalid_vsn}
     end.
 
-join_paths(Root, []) ->
-    Root;
-join_paths(Root, [H|T]) ->
-    join_paths(filename:join(Root, H), T).
 
 make_dir(Dir) ->
     case file:list_dir(Dir) of
@@ -69,7 +65,7 @@ create_local_paths(Deps) when is_list(Deps) ->
     end.
 
 create_local_paths(Home, Deps) ->
-    [join_paths(Home, [".onan", DepName, DepVsn])
+    [{DepName, DepVsn, onan_file:join_paths(Home, [".onan", DepName, DepVsn])}
      || {DepName, DepVsn} <- Deps].
 
 do_deploy(Endpoint, Metadata) ->
