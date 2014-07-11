@@ -59,7 +59,7 @@ create_local_paths([]) ->
 create_local_paths(Deps) when is_list(Deps) ->
     case os:getenv("HOME") of
         false ->
-            error(wowza);
+            error(this_shouldnt_happen);
         Home when is_list(Home) ->
             create_local_paths(Home, Deps)
     end.
