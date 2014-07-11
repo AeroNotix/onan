@@ -1,14 +1,14 @@
--module(reploy).
+-module(onan).
 -compile(export_all).
 
 
 deps({config, _, Config, _, _, _, _}, _AppFile) ->
-    ReployDeps     = proplists:get_value(reploy_deps, Config, []),
-    ReployEndpoint = proplists:get_value(reploy_endpoint, Config),
-    get_deps(ReployDeps, ReployEndpoint).
+    OnanDeps     = proplists:get_value(onan_deps, Config, []),
+    OnanEndpoint = proplists:get_value(onan_endpoint, Config),
+    get_deps(OnanDeps, OnanEndpoint).
 
 get_deps(_, undefined) ->
-    io:format("Missing reploy endpoint. "
+    io:format("Missing onan endpoint. "
               "Please supply an endpoint from which to retrieve "
               "dependencies. e.g:~n\t"
               "{reply_endpoint, \"http://foobar.com\"}~n");
@@ -32,6 +32,19 @@ parse_vsn(Vsn) ->
             {error, invalid_vsn}
     end.
 
+join_paths(Root, []) ->
+    Root;
+join_paths(Root, [H|T]) ->
+    join_paths(filename:join(Root, H), T).
+
+make_dir(Dir) ->
+    case file:list_dir(Dir) of
+        {ok, _} ->
+            ok;
+        {error, enoent} ->
+            ok = file:make_dir(Dir)
+    end.
+
 to_dep_list([]) ->
     [];
 to_dep_list(Dependencies) ->
@@ -44,6 +57,20 @@ to_dep_list([{Namespace, Name, Vsn}|T], Acc) ->
                {<<"name">>, Name},
                {<<"version">>, list_to_binary(Vsn)}],
     to_dep_list(T, [JSONDep|Acc]).
+
+create_local_paths([]) ->
+    [];
+create_local_paths(Deps) when is_list(Deps) ->
+    case os:getenv("HOME") of
+        false ->
+            error(wowza);
+        Home when is_list(Home) ->
+            create_local_paths(Home, Deps)
+    end.
+
+create_local_paths(Home, Deps) ->
+    [join_paths(Home, [".onan", DepName, DepVsn])
+     || {DepName, DepVsn} <- Deps].
 
 do_deploy(Endpoint, Metadata) ->
     URL = Endpoint ++ "/artefact",
@@ -65,18 +92,13 @@ do_deploy(Endpoint, Metadata) ->
             {error, {unknown_error, Status}}
     end.
 
-pre_deploy(_, _) ->
-    %% Rebar doesn't call any application:start stuff for the plugins.
-    inets:start(),
-    ok.
-
 deploy({config, _, Config, _, _, _, _}, AppFile) ->
     %% The Dir passed to this handler seems to always be incorrect,
     %% rebar internally sets the cwd to the correct directory.
     {ok, Dir} = file:get_cwd(),
 
-    ReployDeps     = proplists:get_value(reploy_deps, Config, []),
-    ReployEndpoint = proplists:get_value(reploy_endpoint, Config),
+    OnanDeps     = proplists:get_value(onan_deps, Config, []),
+    OnanEndpoint = proplists:get_value(onan_endpoint, Config),
 
     {ok, [{application, AppName, AppFileContents}]}
         = file:consult(AppFile),
@@ -107,15 +129,15 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
                 [{<<"namespace">>, Namespace},
                  {<<"name">>, AppName},
                  {<<"version">>, Vsn},
-                 {<<"dependencies">>, to_dep_list(ReployDeps)},
+                 {<<"dependencies">>, to_dep_list(OnanDeps)},
                  {<<"description">>, Description},
                  {<<"checksum">>, Checksum},
                  {<<"payload">>, Payload}],
-            case do_deploy(ReployEndpoint, DeploymentMetadata) of
+            case do_deploy(OnanEndpoint, DeploymentMetadata) of
                 {ok, Location} ->
                     io:format("Successfully deployed ~s. Artefact now "
                               "permanently lives at ~s.~n", [AppName,
-                                                             ReployEndpoint ++ Location]),
+                                                             OnanEndpoint ++ Location]),
                     ok;
                 {error, {not_found, Extra}} ->
                     Error = proplists:get_value(<<"error">>,
@@ -137,3 +159,47 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
                     {error, conflict_detected}
             end
     end.
+
+package_project(Dir) ->
+    io:format("~p~n", [Dir]),
+    {ok, {_, ZipBytes}} = zip:create("",
+                                     ["../" ++ filename:basename(Dir)],
+                                     [{compress, all},
+                                      memory,
+                                      {uncompress, [".beam", ".app"]}]),
+    ZipBytes.
+
+save_project(ProjPkg, Dir, Vsn) ->
+    FinalPath = filename:join(Dir, Vsn),
+    case file:list_dir(FinalPath) of
+        {ok, _} ->
+            io:format("ERROR: Project already exists on filesystem "
+                      "refusing to overwrite");
+        {error, enoent} ->
+            ok = make_dir(FinalPath),
+            OutPkg = filename:join(FinalPath, "code.zip"),
+            ok = file:write_file(OutPkg, ProjPkg)
+    end.
+
+main(["install"]) ->
+    {ok, Config} = file:consult("onan.config"),
+    {ok, Dir} = file:get_cwd(),
+    ProjName = proplists:get_value(name, Config),
+    Vsn = proplists:get_value(vsn, Config),
+    case os:getenv("HOME") of
+        HomeDir when is_list(HomeDir) ->
+            OnanHome = filename:join(HomeDir, ".onan"),
+            ProjDir    = filename:join(OnanHome, ProjName),
+            ok = make_dir(OnanHome),
+            ok = make_dir(ProjDir),
+            ProjPkg = package_project(Dir),
+            ok = save_project(ProjPkg, ProjDir, Vsn)
+
+    end;
+
+main(["deps"]) ->
+    {ok, Config} = file:consult("onan.config"),
+    {ok, Dir} = file:get_cwd(),
+    Deps = proplists:get_value(deps, Config),
+    LocalPaths = create_local_paths(Deps),
+    io:format("~p~n", [LocalPaths]).
