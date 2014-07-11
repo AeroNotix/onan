@@ -126,7 +126,6 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
     end.
 
 package_project(Dir) ->
-    io:format("~p~n", [Dir]),
     {ok, {_, ZipBytes}} = zip:create("",
                                      ["../" ++ filename:basename(Dir)],
                                      [{compress, all},
