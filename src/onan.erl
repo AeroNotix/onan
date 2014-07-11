@@ -2,28 +2,6 @@
 -compile(export_all).
 
 
-deps({config, _, Config, _, _, _, _}, _AppFile) ->
-    OnanDeps     = proplists:get_value(onan_deps, Config, []),
-    OnanEndpoint = proplists:get_value(onan_endpoint, Config),
-    get_deps(OnanDeps, OnanEndpoint).
-
-get_deps(_, undefined) ->
-    io:format("Missing onan endpoint. "
-              "Please supply an endpoint from which to retrieve "
-              "dependencies. e.g:~n\t"
-              "{reply_endpoint, \"http://foobar.com\"}~n");
-get_deps([], _) ->
-    io:format("No dependencies.~n");
-get_deps(Dependencies, Endpoint) ->
-    [begin
-         io:format("Retrieving: ~p~n", [Dep]),
-         get_dep(Dep, Endpoint)
-     end || Dep <- Dependencies],
-    ok.
-
-get_dep(_Dep, _Endpoint) ->
-    ok.
-
 parse_vsn(Vsn) ->
     try
         mouture:parse(Vsn)
@@ -31,8 +9,6 @@ parse_vsn(Vsn) ->
         error:function_clause ->
             {error, invalid_vsn}
     end.
-
-
 
 to_dep_list([]) ->
     [];
