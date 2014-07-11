@@ -135,13 +135,13 @@ package_project(Dir) ->
 
 save_project(ProjPkg, Dir, Vsn) ->
     FinalPath = filename:join(Dir, Vsn),
-    case filelib:is_dir(FinalPath) of
+    OutPkg = filename:join(FinalPath, "code.zip"),
+    case filelib:is_file(OutPkg) of
         true ->
             io:format("ERROR: Project already exists on filesystem "
                       "refusing to overwrite");
         false ->
-            ok = filelib:ensure_dir(FinalPath),
-            OutPkg = filename:join(FinalPath, "code.zip"),
+            ok = filelib:ensure_dir(OutPkg),
             ok = file:write_file(OutPkg, ProjPkg)
     end.
 
