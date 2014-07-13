@@ -35,6 +35,22 @@ copy_dep(DepName, FromDep, _, To) ->
     ok = filelib:ensure_dir(OutDep),
     zip:unzip(DepCode, [{cwd, OutDep}]).
 
+save_dep(DepData, To) ->
+    zip:unzip(DepData, [{cwd, To}]).
+
+get_remote_dependency(Namespace, Name, Vsn, Config) ->
+    URI = proplists:get_value(server, Config),
+    FullURI = lists:flatten(io_lib:format("~s/deps/~s/~s/~s", [URI, Namespace, Name, Vsn])),
+    Req = {FullURI, [{"accept", "application/json"}]},
+    {ok, Resp} = httpc:request(get, Req, [], []),
+    {{_, Status, _}, _, Body} = Resp,
+    case Status of
+        404 ->
+            {error, notfound};
+        200 ->
+            {ok, Body}
+    end.
+
 create_local_paths([]) ->
     [];
 create_local_paths(Deps) when is_list(Deps) ->
