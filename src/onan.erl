@@ -44,8 +44,9 @@ create_local_paths(Deps) when is_list(Deps) ->
     end.
 
 create_local_paths(Home, Deps) ->
-    [{DepName, DepVsn, onan_file:join_paths(Home, [".onan", DepName, DepVsn])}
-     || {DepName, DepVsn} <- Deps].
+    [{Namespace, DepName, DepVsn,
+      onan_file:join_paths(Home, [".onan", Namespace, DepName, DepVsn])}
+     || {Namespace, DepName, DepVsn} <- Deps].
 
 do_deploy(Endpoint, Metadata) ->
     URL = Endpoint ++ "/artefact",
@@ -155,19 +156,23 @@ save_project(ProjPkg, Dir, Vsn) ->
             ok = file:write_file(OutPkg, ProjPkg)
     end.
 
+home_repo(Namespace, ProjName) ->
+    case os:getenv("HOME") of
+        HomeDir when is_list(HomeDir) ->
+            OnanHome = filename:join(HomeDir, ".onan"),
+            onan_file:join_paths(OnanHome, [Namespace, ProjName])
+    end.
+
 main(["install"]) ->
     {ok, Config} = file:consult("onan.config"),
     {ok, Dir} = file:get_cwd(),
     ProjName = proplists:get_value(name, Config),
+    Namespace = proplists:get_value(namespace, Config),
     Vsn = proplists:get_value(vsn, Config),
-    case os:getenv("HOME") of
-        HomeDir when is_list(HomeDir) ->
-            OnanHome = filename:join(HomeDir, ".onan"),
-            ProjDir = filename:join(OnanHome, ProjName),
-            ok = filelib:ensure_dir(ProjDir),
-            ProjPkg = package_project(Dir),
-            ok = save_project(ProjPkg, ProjDir, Vsn)
-    end;
+    ProjDir = home_repo(Namespace, ProjName),
+    ok = filelib:ensure_dir(ProjDir),
+    ProjPkg = package_project(Dir),
+    ok = save_project(ProjPkg, ProjDir, Vsn);
 
 main(["deps"]) ->
     {ok, Config} = file:consult("onan.config"),
@@ -177,6 +182,25 @@ main(["deps"]) ->
     [begin
          case filelib:is_dir(DepDir) of
              true ->
-                 {ok, _} = copy_dep(DepName, DepDir, DepVsn, Dir)
+                 {ok, _} = copy_dep(DepName, DepDir, DepVsn, Dir);
+             false ->
+                 io:format("Missing local dependency: ~s~n", [DepName]),
+                 case get_remote_dependency(Namespace, DepName, DepVsn, Config) of
+                     {error, notfound} ->
+                         io:format("Missing remote dependency: ~s~n", [DepName]);
+                     {ok, Body} ->
+                         ProjDir = home_repo(Namespace, DepName),
+                         {ok, _} = save_dep(Body, ProjDir)
+                 end
          end
-     end || {DepName, DepVsn, DepDir} <- LocalPaths].
+     end || {Namespace, DepName, DepVsn, DepDir} <- LocalPaths];
+
+main(["deploy"]) ->
+    {ok, Config} = file:consult("onan.config"),
+    deploy(Config);
+
+main(["list-deps"]) ->
+    {ok, Config} = file:consult("onan.config"),
+    Deps = proplists:get_value(deps, Config),
+    [io:format("Name: ~s~nVersion: ~s~n", [Name, Vsn])
+     || {Name, Vsn} <- Deps].
