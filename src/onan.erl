@@ -1,6 +1,12 @@
 -module(onan).
 -compile(export_all).
 
+-on_load(init/0).
+
+
+init() ->
+    inets:start(),
+    ssl:start().
 
 parse_vsn(Vsn) ->
     try
