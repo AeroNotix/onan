@@ -24,9 +24,9 @@ to_dep_list(Dependencies) ->
 to_dep_list([], Converted) ->
     Converted;
 to_dep_list([{Namespace, Name, Vsn}|T], Acc) ->
-    JSONDep = [{<<"namespace">>, Namespace},
-               {<<"name">>, Name},
-               {<<"version">>, list_to_binary(Vsn)}],
+    JSONDep = [{<<"namespace">> , list_to_binary(Namespace)},
+               {<<"name">>      , list_to_binary(Name)},
+               {<<"version">>   , list_to_binary(Vsn)}],
     to_dep_list(T, [JSONDep|Acc]).
 
 copy_dep(DepName, FromDep, _, To) ->
