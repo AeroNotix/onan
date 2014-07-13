@@ -161,7 +161,7 @@ save_project(ProjPkg, Dir, Vsn) ->
     case filelib:is_file(OutPkg) of
         true ->
             io:format("ERROR: Project already exists on filesystem "
-                      "refusing to overwrite");
+                      "refusing to overwrite~n");
         false ->
             ok = filelib:ensure_dir(OutPkg),
             ok = file:write_file(OutPkg, ProjPkg)
