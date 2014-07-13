@@ -68,19 +68,14 @@ do_deploy(Endpoint, Metadata) ->
             {error, {unknown_error, Status}}
     end.
 
-deploy({config, _, Config, _, _, _, _}, AppFile) ->
-    %% The Dir passed to this handler seems to always be incorrect,
-    %% rebar internally sets the cwd to the correct directory.
-    {ok, Dir} = file:get_cwd(),
+deploy(Config) ->
+    OnanDeps     = proplists:get_value(deps, Config, []),
+    OnanEndpoint = proplists:get_value(server, Config),
+    Vsn          = list_to_binary(proplists:get_value(vsn, Config, "")),
+    Description  = list_to_binary(proplists:get_value(description, Config, "")),
+    AppName      = list_to_binary(proplists:get_value(name, Config)),
+    Namespace    = list_to_binary(proplists:get_value(namespace, Config)),
 
-    OnanDeps     = proplists:get_value(onan_deps, Config, []),
-    OnanEndpoint = proplists:get_value(onan_endpoint, Config),
-
-    {ok, [{application, AppName, AppFileContents}]}
-        = file:consult(AppFile),
-    Vsn = list_to_binary(proplists:get_value(vsn, AppFileContents, "")),
-    Description = list_to_binary(proplists:get_value(description, AppFileContents, "")),
-    Namespace = list_to_binary(proplists:get_value(namespace, Config)),
     case parse_vsn(Vsn) of
         {error, invalid_vsn} ->
             %% We use semver, because reasons.
@@ -88,7 +83,7 @@ deploy({config, _, Config, _, _, _, _}, AppFile) ->
                       "Semantic versioning is required. "
                       "Please see: http://semver.org/");
         _ ->
-            %% TODO: Make this better.
+            {ok, Dir} = file:get_cwd(),
             {ok, {_, ZipBytes}} = zip:create("",
                                              ["../" ++ filename:basename(Dir)],
                                              [{compress, all},
