@@ -121,14 +121,7 @@ deploy(Config) ->
                       "Please see: http://semver.org/");
         _ ->
             {ok, Dir} = file:get_cwd(),
-            ExceptList = [filename:join(Dir, "deps"),
-                          filename:join(Dir, ".git"),
-                          filename:join(Dir, "ebin")],
-            {ok, {_, ZipBytes}} = zip:create("",
-                                             onan_file:list_relevant_files(Dir, ExceptList),
-                                             [{compress, all},
-                                              memory,
-                                              {uncompress, [".beam", ".app"]}]),
+            ZipBytes = package_project(Dir),
             Payload = base64:encode(ZipBytes),
             << M: 128>> = crypto:hash(md5, Payload),
             Checksum = list_to_binary(integer_to_list(M, 16)),
@@ -168,8 +161,11 @@ deploy(Config) ->
     end.
 
 package_project(Dir) ->
+    ExceptList = [filename:join(Dir, "deps"),
+                  filename:join(Dir, ".git"),
+                  filename:join(Dir, "ebin")],
     {ok, {_, ZipBytes}} = zip:create("",
-                                     ["../" ++ filename:basename(Dir)],
+                                     onan_file:list_relevant_files(Dir, ExceptList),
                                      [{compress, all},
                                       memory,
                                       {uncompress, [".beam", ".app"]}]),
