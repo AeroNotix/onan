@@ -18,13 +18,14 @@ any_match(S, All) ->
 
 list_relevant_files(Root, Except) ->
     Paths = filelib:wildcard(Root ++ "/**"),
+    Matcher =
+        fun(S) ->
+                case any_match(S, Except)
+                of true ->
+                        false;
+                    false ->
+                        true
+                end
+        end,
     [lists:nthtail(length(Root) + 1, Path)
-     || Path <-
-            lists:filter(fun(S) ->
-                                 case any_match(S, Except)
-                                 of true ->
-                                         false;
-                                     false ->
-                                         true
-                                 end
-                         end, Paths)].
+     || Path <- lists:filter(Matcher, Paths)].
