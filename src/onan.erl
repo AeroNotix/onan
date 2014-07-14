@@ -131,7 +131,7 @@ deploy(Config) ->
                                                 jsx:decode(
                                                   erlang:list_to_binary(Extra)
                                                  )),
-                    io:format("Not found: ~p~n", [Error]),
+                    io:format("Not found: ~s~n", [binary_to_list(Error)]),
                     {error, not_found};
                 {error, checksum_mismatch} ->
                     io:format("The server received a different "
