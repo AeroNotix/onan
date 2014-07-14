@@ -39,7 +39,8 @@ save_remote_deps([]) ->
     ok;
 save_remote_deps([{Namespace, Name, Vsn, Payload}|T]) ->
     Target = home_repo(Namespace, Name),
-    save_project(Payload, Target, Vsn),
+    Decoded = base64:decode(Payload),
+    save_project(Decoded, Target, Vsn),
     save_remote_deps(T).
 
 get_remote_dependency(Namespace, Name, Vsn, Config) ->
@@ -120,11 +121,15 @@ deploy(Config) ->
                       "Please see: http://semver.org/");
         _ ->
             {ok, Dir} = file:get_cwd(),
+            ExceptList = [filename:join(Dir, "deps"),
+                          filename:join(Dir, ".git"),
+                          filename:join(Dir, "ebin")],
             {ok, {_, ZipBytes}} = zip:create("",
-                                             ["../" ++ filename:basename(Dir)],
+                                             onan_file:list_relevant_files(Dir, ExceptList),
                                              [{compress, all},
                                               memory,
                                               {uncompress, [".beam", ".app"]}]),
+
             Payload = base64:encode(ZipBytes),
 
             %% TODO: Make this better.
