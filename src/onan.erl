@@ -129,14 +129,9 @@ deploy(Config) ->
                                              [{compress, all},
                                               memory,
                                               {uncompress, [".beam", ".app"]}]),
-
             Payload = base64:encode(ZipBytes),
-
-            %% TODO: Make this better.
-            %% Create the human-readable md5 of the payload.
             << M: 128>> = crypto:hash(md5, Payload),
             Checksum = list_to_binary(integer_to_list(M, 16)),
-
             DeploymentMetadata =
                 [{<<"namespace">>, Namespace},
                  {<<"name">>, AppName},
