@@ -35,8 +35,12 @@ copy_dep(DepName, FromDep, _, To) ->
     ok = filelib:ensure_dir(OutDep),
     zip:unzip(DepCode, [{cwd, OutDep}]).
 
-save_dep(DepData, To) ->
-    zip:unzip(DepData, [{cwd, To}]).
+save_remote_deps([]) ->
+    ok;
+save_remote_deps([{Namespace, Name, Vsn, Payload}|T]) ->
+    Target = home_repo(Namespace, Name),
+    save_project(Payload, Target, Vsn),
+    save_remote_deps(T).
 
 get_remote_dependency(Namespace, Name, Vsn, Config) ->
     URI = proplists:get_value(server, Config),
@@ -48,8 +52,24 @@ get_remote_dependency(Namespace, Name, Vsn, Config) ->
         404 ->
             {error, notfound};
         200 ->
-            {ok, Body}
+            {ok, list_to_binary(Body)}
     end.
+
+extract_dependency_data(Dep) ->
+    Namespace = proplists:get_value(<<"namespace">>, Dep),
+    Name      = proplists:get_value(<<"name">>     , Dep),
+    Version   = proplists:get_value(<<"version">>  , Dep),
+    Payload   = proplists:get_value(<<"payload">>  , Dep),
+    {Namespace, Name, Version, Payload}.
+
+extract_dependency_list(Deps) ->
+    do_edl(proplists:get_value(<<"dependencies">>, Deps), []).
+
+do_edl([], Acc) ->
+    Acc;
+do_edl([H|T], Acc) ->
+    Extracted = extract_dependency_data(H),
+    do_edl(T, [Extracted|Acc]).
 
 create_local_paths([]) ->
     [];
@@ -155,7 +175,7 @@ package_project(Dir) ->
                                       {uncompress, [".beam", ".app"]}]),
     ZipBytes.
 
-save_project(ProjPkg, Dir, Vsn) ->
+save_project([_|"code.zip"] = ProjPkg, Dir, Vsn) ->
     FinalPath = filename:join(Dir, Vsn),
     OutPkg = filename:join(FinalPath, "code.zip"),
     case filelib:is_file(OutPkg) of
@@ -165,7 +185,11 @@ save_project(ProjPkg, Dir, Vsn) ->
         false ->
             ok = filelib:ensure_dir(OutPkg),
             ok = file:write_file(OutPkg, ProjPkg)
-    end.
+    end;
+save_project(Payload, Dir, Vsn) when is_binary(Payload) ->
+    FinalPath = onan_file:join_paths(Dir, [Vsn, "code.zip"]),
+    ok = filelib:ensure_dir(FinalPath),
+    ok = file:write_file(FinalPath, Payload).
 
 home_repo(Namespace, ProjName) ->
     case os:getenv("HOME") of
@@ -200,8 +224,9 @@ main(["deps"]) ->
                      {error, notfound} ->
                          io:format("Missing remote dependency: ~s~n", [DepName]);
                      {ok, Body} ->
-                         ProjDir = home_repo(Namespace, DepName),
-                         {ok, _} = save_dep(Body, ProjDir)
+                         DecodedBody = jsx:decode(Body),
+                         RemoteDeps = extract_dependency_list(DecodedBody),
+                         ok = save_remote_deps(RemoteDeps)
                  end
          end
      end || {Namespace, DepName, DepVsn, DepDir} <- LocalPaths];
