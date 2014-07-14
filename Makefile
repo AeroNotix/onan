@@ -18,7 +18,7 @@ $(DEPS):/
 compile:
 	rebar compile
 
-escriptize:
+escriptize: compile
 	rebar escriptize
 
 
