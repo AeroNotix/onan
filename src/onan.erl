@@ -241,6 +241,16 @@ main(["deploy"]) ->
     {ok, Config} = file:consult("onan.config"),
     deploy(Config);
 
+main(["bootstrap"]) ->
+    {ok, CWD} = file:get_cwd(),
+    case file:list_dir("./deps") of
+        {error, enoent} ->
+            io:format("No dependencies.");
+        {ok, Dirs} ->
+            FullPathDirs = [onan_file:join_paths(CWD, ["deps", Dir]) || Dir <- Dirs],
+            onan_bootstrap:bootstrap(FullPathDirs)
+    end;
+
 main(["list-deps"]) ->
     {ok, Config} = file:consult("onan.config"),
     Deps = proplists:get_value(deps, Config),
