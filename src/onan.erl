@@ -29,7 +29,7 @@ to_dep_list([{Namespace, Name, Vsn}|T], Acc) ->
                {<<"version">>   , list_to_binary(Vsn)}],
     to_dep_list(T, [JSONDep|Acc]).
 
-copy_dep(DepName, FromDep, _, To) ->
+copy_dep(DepName, FromDep, To) ->
     DepCode = filename:join(FromDep, "code.zip"),
     OutDep = onan_file:join_paths(To, ["deps", DepName]),
     ok = filelib:ensure_dir(OutDep),
@@ -42,6 +42,14 @@ save_remote_deps([{Namespace, Name, Vsn, Payload}|T]) ->
     Decoded = base64:decode(Payload),
     save_project(Decoded, Target, Vsn),
     save_remote_deps(T).
+
+save_remote_deps_to_project([]) ->
+    ok;
+save_remote_deps_to_project([{Namespace, Name, Vsn, _}|T]) ->
+    {ok, CWD} = file:get_cwd(),
+    Target = onan_file:join(home_repo(Namespace, Name), Vsn),
+    {ok, _} = copy_dep(Name, Target, CWD),
+    save_remote_deps_to_project(T).
 
 get_remote_dependency(Namespace, Name, Vsn, Config) ->
     URI = proplists:get_value(server, Config),
@@ -163,7 +171,7 @@ deploy(Config) ->
 package_project(Dir) ->
     ExceptList = [filename:join(Dir, "deps"),
                   filename:join(Dir, ".git"),
-                  filename:join(Dir, "ebin")],
+                  ".beam"],
     {ok, {_, ZipBytes}} = zip:create("",
                                      onan_file:list_relevant_files(Dir, ExceptList),
                                      [{compress, all},
@@ -213,7 +221,7 @@ main(["deps"]) ->
     [begin
          case filelib:is_dir(DepDir) of
              true ->
-                 {ok, _} = copy_dep(DepName, DepDir, DepVsn, Dir);
+                 {ok, _} = copy_dep(DepName, DepDir, Dir);
              false ->
                  io:format("Missing local dependency: ~s~n", [DepName]),
                  case get_remote_dependency(Namespace, DepName, DepVsn, Config) of
@@ -222,7 +230,8 @@ main(["deps"]) ->
                      {ok, Body} ->
                          DecodedBody = jsx:decode(Body),
                          RemoteDeps = extract_dependency_list(DecodedBody),
-                         ok = save_remote_deps(RemoteDeps)
+                         ok = save_remote_deps(RemoteDeps),
+                         ok = save_remote_deps_to_project(RemoteDeps)
                  end
          end
      end || {Namespace, DepName, DepVsn, DepDir} <- LocalPaths];
