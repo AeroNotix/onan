@@ -13,8 +13,7 @@ join_paths(Root, [H|T]) ->
 any_match(S, All) ->
     lists:any(fun(P) ->
                       string:str(S, P) =/= 0
-              end,
-              All).
+              end, All).
 
 list_relevant_files(Root, Except) ->
     Paths = filelib:wildcard(Root ++ "/**"),
