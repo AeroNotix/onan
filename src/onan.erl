@@ -47,8 +47,8 @@ save_remote_deps_to_project([]) ->
     ok;
 save_remote_deps_to_project([{Namespace, Name, Vsn, _}|T]) ->
     {ok, CWD} = file:get_cwd(),
-    Target = onan_file:join(home_repo(Namespace, Name), Vsn),
-    {ok, _} = copy_dep(Name, Target, CWD),
+    Target = filename:join(home_repo(Namespace, Name), Vsn),
+    copy_dep(Name, Target, CWD),
     save_remote_deps_to_project(T).
 
 get_remote_dependency(Namespace, Name, Vsn, Config) ->
