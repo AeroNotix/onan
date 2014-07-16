@@ -149,11 +149,9 @@ deploy(Config) ->
                                                              OnanEndpoint ++ Location]),
                     ok;
                 {error, {not_found, Extra}} ->
-                    Error = proplists:get_value(<<"error">>,
-                                                jsx:decode(
-                                                  erlang:list_to_binary(Extra)
-                                                 )),
-                    io:format("Not found: ~s~n", [binary_to_list(Error)]),
+                    BinExtra = list_to_binary(Extra),
+                    JSONExtra = jsx:decode(BinExtra),
+                    io:format("Not found: ~p~n", [JSONExtra]),
                     {error, not_found};
                 {error, checksum_mismatch} ->
                     io:format("The server received a different "
