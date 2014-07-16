@@ -1,8 +1,6 @@
 -module(onan_bootstrap).
 
-
 -export([bootstrap/1]).
-
 
 
 git_namespace() ->
