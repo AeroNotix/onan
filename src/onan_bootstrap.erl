@@ -29,18 +29,37 @@ what_namespace(Name) ->
 
 bootstrap([]) ->
     ok;
-bootstrap([Dir|Dirs]) ->
+bootstrap(Dirs) ->
+    bootstrap(Dirs, []).
+
+bootstrap([], Acc) ->
+    io:format("~p~n", [Acc]),
+    ok;
+bootstrap([Dir|Dirs], Acc) ->
     ok = file:set_cwd(Dir),
     case file:consult("onan.config") of
         {ok, Config} ->
             %% TODO Move the deploy shit into its own proper namespace
-            onan:deploy(Config);
+            bootstrap(Dirs, [info_from_config(Dir, Config)|Acc]);
         {error, enoent} ->
-            bootstrap_from_app_src()
-    end,
-    bootstrap(Dirs).
+            bootstrap(Dirs, [bootstrap_from_app_src(Dir)|Acc])
+    end.
 
-bootstrap_from_app_src() ->
+info_from_config(Dir, Config) ->
+    {Dir,
+     proplists:get_value(namespace , Config),
+     proplists:get_value(name      , Config),
+     proplists:get_value(vsn       , Config)}.
+
+deps_from_rebar(Dir) ->
+    case file:consult(filename:join(Dir, "rebar.config")) of
+        {error, enoent} ->
+            [];
+        {ok, [{deps, Deps}]} ->
+            [element(1, Dep) || Dep <- Deps]
+    end.
+
+bootstrap_from_app_src(Dir) ->
     FromSrc = filelib:wildcard("src/**/*.app.src"),
     FromBeam = filelib:wildcard("beam/**/*.app.src"),
     AppSrc =
@@ -67,7 +86,8 @@ bootstrap_from_app_src() ->
             Format = "~p.~n~p.~n~p.~n~p.~n~p.~n~p.~n",
             Output = io_lib:format(Format, OnanConfig),
             file:write_file("onan.config", Output),
-            onan:deploy(OnanConfig);
+            Deps = deps_from_rebar(Dir),
+            {Dir, Namespace, Name, Vsn, Deps};
         {error, _} = E ->
             io:format("~p~n", [E])
     end.
