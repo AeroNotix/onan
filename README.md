@@ -205,8 +205,7 @@ Unordered Goals
     * Can be solved by hashing the final set of files and looking for
       this hash (and comparing) on next dependency run.
 * Versioned artefacts.
-* Use rebar plugins as a bootstrap method (possible eventually a
-  separate app). Scratch this. A rebar plugin is a ridiculous notion
+* A rebar plugin is a ridiculous notion
   because:
   * Rebar is extremely poorly coded.
   * It uses strage semantics for calling into plugin code.
