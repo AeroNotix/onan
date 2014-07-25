@@ -212,6 +212,7 @@ Unordered Goals
   * It uses strage semantics for calling into plugin code.
 * Open deployment tool / open archival service. This is to prevent a
   single point of failure in the dependency network.
+* SAT solvers will need to be employed for certain dependency graphs.
 * Namespaced packages. (e.g. puzza/awesome_lib and rpt/awesome_lib )
     * These are now two separate projects.
 * Projects under the same name mean that other projects with the same
