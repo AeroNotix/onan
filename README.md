@@ -152,49 +152,6 @@ server exists but
 [clear documentation for its API](http://docs.onan.apiary.io/)
 exists on Apiary.io.
 
-How to use
-==========
-
-Create an `onan.config` file which looks similar to:
-
-```erlang
-{name, "onan"}.
-{vsn, "0.0.1"}.
-{deps, [{"onan", "0.0.1"}]}.
-{onan_server, "http://localhost:8080"}.
-```
-
-Deploying
----------
-
-TBD
-
-Specifying Dependencies
------------------------
-
-You will need to include the `deps` field in your onan.config file:
-
-```erlang
-{deps, [{"name", "version"}]}.
-```
-
-
-Where:
-
-* Name is the name of the project you want to specify a dependency on.
-* Version which is in [semver format](http://semver.org/).
-* Optionally, you can specify a separate remote host to retrieve your
-  dependencies from.
-
-Then in your shell run:
-
-```shell
-$ rebar deps
-```
-
-Which will talk to the third party service you set up and retrieve all
-the dependencies.
-
 
 Unordered Goals
 ---------------
