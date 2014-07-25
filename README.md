@@ -56,8 +56,67 @@ for onan itself!
     should end up.
 
 
-Problem
-=======
+Command Line
+============
+
+Retrieving dependencies
+-----------------------
+
+Once you have an onan.config file describing the project's
+dependencies all you will need to do to retrieve your dependencies is
+to enter:
+
+```shell
+onan deps
+```
+
+This will either copy the locally cached dependencies into a `deps`
+folder or it will first fetch dependencies from the remote onan server
+_then_ copy them into the local folder.
+
+Deploying artefacts
+-------------------
+
+To be able to provide the project to a wider-audience, or simply be
+able to use it in your other projects, you will need to first make it
+available in an onan server.
+
+```shell
+onan deploy
+```
+
+This will package up the local project and push it over to the onan
+server.
+
+Bootstrapping from rebarized projects
+-------------------------------------
+
+Onan aims to provide a smooth progression from rebar. To that end, we
+provide a command which will traverse a project with its full
+dependency graph checked out into the local `deps` directory and push
+these dependencies into the onan server (and cache them locally).
+
+This makes it very easy to migrate to post-rebar realities.
+
+```shell
+onan bootstrap
+```
+
+Since we may not have all information for all dependencies, you may be
+prompted for some information, example:
+
+```shell
+Which namespace should be used for jsx? =>
+```
+
+Whatever you type in here will be used for the namespace portion of
+the deployment.
+
+Once onan is established, this step should hopefully no longer be
+required.
+
+Why Onan exists
+===============
 
 Rebar's current method of retrieving dependencies is completely and
 *utterly* broken. There is no semblence of repeatability. You cannot
