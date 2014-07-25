@@ -9,6 +9,52 @@ Server
 
 [The server portion of this application lives here](https://github.com/AeroNotix/onan_server/)
 
+How to use
+==========
+
+You need to either run `onan bootstrap` on an existing rebarized
+project or write a small configuration file specifically for onan.
+
+The format should be familiar to users of rebar, with a couple of
+minor differences.
+
+```erlang
+{namespace, "AeroNotix"}.
+{name, "onan"}.
+{vsn, "0.0.1"}.
+{description, "Erlang dependency management tool."}.
+{deps, [{"nox", "mouture", "0.0.1"},
+        {"talentdeficit", "jsx", "1.4.5"}]}.
+{server, "http://localhost:45045"}.
+```
+
+This is a full example of an onan.config file, in fact, it's the one
+for onan itself!
+
+* Namespace
+  * This value will be used to provide a top-level grouping for
+    repositories for a specific user. Eventually this namespace will
+    be used for the username portion for authentication.
+* Name
+  * Simply the name of the project.
+* Vsn
+  * The version of a project, which _must_ be in the semantic version
+    format.
+* Description
+  * A string for a small blurb about the project, what it is, why it
+    exists.
+* Deps
+  * A list of tuples which describe a dependency.
+  * The format of the tuple is:
+
+```erlang
+-type dependency() :: {string(), string(), string()}.
+```
+* Server
+  * This is the remote server which should be queried for dependencies
+    which are not available on the local machine and where deployments
+    should end up.
+
 
 Problem
 =======
