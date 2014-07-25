@@ -233,4 +233,4 @@ Unordered Goals
 Inspiration
 -----------
 
-This was inspired by working with the awesomeness that is Lein.
+This was inspired by working with the awesomeness that is Leiningen.
