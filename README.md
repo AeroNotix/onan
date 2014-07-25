@@ -164,7 +164,7 @@ Unordered Goals
 * Versioned artefacts.
 * A rebar plugin is a ridiculous notion because:
   * Rebar is extremely poorly coded.
-  * It uses strage semantics for calling into plugin code.
+  * It uses strange semantics for calling into plugin code.
 * Open deployment tool / open archival service. This is to prevent a
   single point of failure in the dependency network.
 * SAT solvers will need to be employed for certain dependency graphs.
