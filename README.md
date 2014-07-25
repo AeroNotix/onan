@@ -205,8 +205,7 @@ Unordered Goals
     * Can be solved by hashing the final set of files and looking for
       this hash (and comparing) on next dependency run.
 * Versioned artefacts.
-* A rebar plugin is a ridiculous notion
-  because:
+* A rebar plugin is a ridiculous notion because:
   * Rebar is extremely poorly coded.
   * It uses strage semantics for calling into plugin code.
 * Open deployment tool / open archival service. This is to prevent a
