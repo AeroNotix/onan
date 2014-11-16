@@ -58,6 +58,17 @@ deps_from_rebar(Dir) ->
             [];
         {ok, [{deps, Deps}]} ->
             [element(1, Dep) || Dep <- Deps]
+get_git_version(Dir) ->
+    Cmd = "cd " ++ Dir ++ "; git describe --always --tags",
+    os:cmd(Cmd).
+
+get_version(Dir, Attrs) ->
+    case proplists:get_value(vsn, Attrs) of
+        git ->
+            {ok, Vsn} = get_git_version(Dir),
+            Vsn;
+        Vsn when is_list(Vsn) ->
+            Vsn
     end.
 
 bootstrap_from_app_src(Dir) ->
@@ -78,7 +89,7 @@ bootstrap_from_app_src(Dir) ->
             [{application, Name, Attrs}] = AppSrcContents,
             ListName = atom_to_list(Name),
             Namespace = what_namespace(ListName),
-            Vsn = proplists:get_value(vsn, Attrs),
+            Vsn = get_version(Dir, Attrs),
             Desc = proplists:get_value(description, Attrs),
             Deps = deps_from_rebar(Dir),
             OnanConfig =
