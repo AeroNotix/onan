@@ -55,6 +55,8 @@ deps_from_rebar(Dir) ->
     case file:consult(filename:join(Dir, "rebar.config")) of
         {error, enoent} ->
             [];
+        {ok, []} ->
+            [];
         {ok, [{deps, Deps}]} ->
             [element(1, Dep) || Dep <- Deps]
     end.
