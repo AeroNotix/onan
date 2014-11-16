@@ -94,13 +94,7 @@ create_local_paths(Home, Deps) ->
       onan_file:join_paths(Home, [".onan", Namespace, DepName, DepVsn])}
      || {Namespace, DepName, DepVsn} <- Deps].
 
-do_deploy(Endpoint, Metadata) ->
-    URL = Endpoint ++ "/artefact",
-    AppJSON = "application/json",
-    Headers = ["accept", AppJSON],
-    Request = {URL, Headers, AppJSON, jsx:encode(Metadata)},
-    Response = httpc:request(post, Request, [], []),
-    {ok, {{_HTTP, Status, _Msg}, RespHeaders, Resp}} = Response,
+handle_deploy_resp({ok, {{_HTTP, Status, _Msg}, RespHeaders, Resp}}) ->
     case Status of
         200 ->
             {ok, proplists:get_value("location", RespHeaders)};
@@ -112,7 +106,17 @@ do_deploy(Endpoint, Metadata) ->
             {error, checksum_failure};
         _ ->
             {error, {unknown_error, Status}}
-    end.
+    end;    
+handle_deploy_resp({error, _} = Reason) ->
+    Reason.
+
+do_deploy(Endpoint, Metadata) ->
+    URL = Endpoint ++ "/artefact",
+    AppJSON = "application/json",
+    Headers = ["accept", AppJSON],
+    Request = {URL, Headers, AppJSON, jsx:encode(Metadata)},
+    Response = httpc:request(post, Request, [], []),
+    handle_deploy_resp(Response).
 
 deploy(Config) ->
     OnanDeps     = proplists:get_value(deps, Config, []),
@@ -163,7 +167,11 @@ deploy(Config) ->
                     io:format("An artefact already exists with this "
                               "metadata or an attempt to create a "
                               "lower-versioned artefact was made.~n~n"),
-                    {error, conflict_detected}
+                    {error, conflict_detected};
+                {error, {failed_connect, _}} ->
+                    io:format("Failed to contact the remote repository. "
+                              "Do you have the correct host in your config?~n"),
+                    {error, failed_connect}
             end
     end.
 
