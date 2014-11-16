@@ -39,7 +39,6 @@ bootstrap([Dir|Dirs], Acc) ->
     ok = file:set_cwd(Dir),
     case file:consult("onan.config") of
         {ok, Config} ->
-            %% TODO Move the deploy shit into its own proper namespace
             bootstrap(Dirs, [info_from_config(Dir, Config)|Acc]);
         {error, enoent} ->
             bootstrap(Dirs, [bootstrap_from_app_src(Dir)|Acc])
