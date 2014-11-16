@@ -72,6 +72,9 @@ bootstrap_from_app_src(Dir) ->
     AppSrc = hd(lists:filtermap(FindMetadataFile, Paths)),
     case file:consult(AppSrc) of
         {ok, AppSrcContents} ->
+    case lists:filtermap(FindMetadataFile, Paths) of
+        [] ->
+            io:format("Not an Erlang/OTP dependency: ~p~n", [Dir]);
             [{application, Name, Attrs}] = AppSrcContents,
             ListName = atom_to_list(Name),
             Namespace = what_namespace(ListName),
