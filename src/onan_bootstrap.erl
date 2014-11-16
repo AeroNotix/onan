@@ -78,8 +78,15 @@ deps_from_rebar(Dir) ->
             [];
         {ok, []} ->
             [];
-        {ok, [{deps, Deps}]} ->
-            [element(1, Dep) || Dep <- Deps]
+        {ok, Config} when is_list(Config) ->
+            case proplists:get_value(deps, Config) of
+                undefined ->
+                    [];
+                Deps when is_list(Deps) ->
+                    [element(1, Dep) || Dep <- Deps]
+            end
+    end.
+
 get_git_version(Dir) ->
     Cmd = "cd " ++ Dir ++ "; git describe --always --tags",
     os:cmd(Cmd).
