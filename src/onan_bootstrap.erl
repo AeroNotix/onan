@@ -3,6 +3,18 @@
 -export([bootstrap/1]).
 
 
+-type version() :: string().
+
+-record(dependency,
+        {dir :: string(),
+         name :: string(),
+         namespace :: string(),
+         version :: version(),
+         deps = [] :: [dependency()]}).
+
+-type dependency() :: #dependency{}.
+
+
 git_namespace() ->
     case filelib:is_dir(".git") of
         true ->
@@ -45,10 +57,11 @@ bootstrap([Dir|Dirs], Acc) ->
     end.
 
 info_from_config(Dir, Config) ->
-    {Dir,
-     proplists:get_value(namespace , Config),
-     proplists:get_value(name      , Config),
-     proplists:get_value(vsn       , Config)}.
+    #dependency{
+       dir=Dir,
+       namespace=proplists:get_value(namespace, Config),
+       name=proplists:get_value(name, Config),
+       version=proplists:get_value(vsn, Config)}.
 
 deps_from_rebar(Dir) ->
     case file:consult(filename:join(Dir, "rebar.config")) of
@@ -102,8 +115,9 @@ bootstrap_from_app_src(Dir) ->
             Format = "~p.~n~p.~n~p.~n~p.~n~p.~n~p.~n",
             Output = io_lib:format(Format, OnanConfig),
             file:write_file("onan.config", Output),
-            Deps = deps_from_rebar(Dir),
-            {Dir, Namespace, Name, Vsn, Deps};
-        {error, _} = E ->
-            io:format("~p~n", [E])
+            #dependency{dir=Dir,
+                        namespace=Namespace,
+                        name=Name,
+                        version=Vsn,
+                        deps=Deps}
     end.
