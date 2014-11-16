@@ -61,14 +61,14 @@ deps_from_rebar(Dir) ->
 
 bootstrap_from_app_src(Dir) ->
     FromSrc = filelib:wildcard("src/**/*.app.src"),
-    FromBeam = filelib:wildcard("beam/**/*.app.src"),
-    AppSrc =
-        case {FromSrc, FromBeam} of
-            {[], [A]} ->
-                A;
-            {[A], []} ->
-                A
+    FromEbin = filelib:wildcard("ebin/**/*.app.src"),
+    FromApp = filelib:wildcard("ebin/**/*.app"),
+    Paths = [FromSrc, FromEbin, FromApp],
+    FindMetadataFile =
+        fun([]) -> false;
+           ([P]) -> {true, P}
         end,
+    AppSrc = hd(lists:filtermap(FindMetadataFile, Paths)),
     case file:consult(AppSrc) of
         {ok, AppSrcContents} ->
             [{application, Name, Attrs}] = AppSrcContents,
