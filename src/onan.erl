@@ -201,6 +201,19 @@ home_repo(Namespace, ProjName) ->
             onan_file:join_paths(OnanHome, [Namespace, ProjName])
     end.
 
+display_help() ->
+    DocString =
+        "Available commands:
+
+deploy    - Deploys the current project to the remote repository.
+bootstrap - Creates a dependency graph in the remote repository.
+list-deps - ...
+",
+    io:format("~s~n", [DocString]).
+
+main([]) ->
+    display_help();
+
 main(["install"]) ->
     {ok, Config} = file:consult("onan.config"),
     {ok, Dir} = file:get_cwd(),
