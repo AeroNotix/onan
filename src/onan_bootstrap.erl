@@ -64,7 +64,7 @@ bootstrap_from_app_src(Dir) ->
     FromSrc = filelib:wildcard("src/**/*.app.src"),
     FromEbin = filelib:wildcard("ebin/**/*.app.src"),
     FromApp = filelib:wildcard("ebin/**/*.app"),
-    Paths = [FromSrc, FromEbin, FromApp],
+    Paths = [FromApp, FromSrc, FromEbin],
     FindMetadataFile =
         fun([]) -> false;
            ([P]) -> {true, P}
