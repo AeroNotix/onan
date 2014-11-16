@@ -12,7 +12,7 @@ all: deps compile escriptize
 deps: $(DEPS)
 	$(RENAME) 's/-(\d\.|\d)+//g' deps/*
 
-$(DEPS):/
+$(DEPS):
 	wget -qO- https://github.com/$@.tar.gz | tar -C deps/ -xzf -
 
 compile:
