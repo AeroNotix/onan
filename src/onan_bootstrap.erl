@@ -22,6 +22,15 @@ git_namespace() ->
                 "origin\tgit@github.com:" ++ Rest ->
                     [Namespace | _] = string:tokens(Rest, "/"),
                     {ok, Namespace};
+                "origin\thttps://github.com/" ++ Rest ->
+                    [Namespace | _] = string:tokens(Rest, "/"),
+                    {ok, Namespace};
+                "origin\thttp://github.com/" ++ Rest ->
+                    [Namespace | _] = string:tokens(Rest, "/"),
+                    {ok, Namespace};
+                "origin\tgit://github.com/" ++ Rest ->
+                    [Namespace | _] = string:tokens(Rest, "/"),
+                    {ok, Namespace};
                 _ ->
                     undefined
             end;
