@@ -9,6 +9,7 @@
         {dir :: string(),
          name :: string(),
          namespace :: string(),
+         description :: string(),
          version :: version(),
          deps = [] :: [dependency()]}).
 
@@ -48,13 +49,48 @@ what_namespace(Name) ->
             lists:reverse(Namespace)
     end.
 
+yank_dependency(Name, Dependencies) ->
+    case [D || D <- Dependencies, D#dependency.name == Name] of
+        [] ->
+            {error, missing_transitive_dependency};
+        [Transitive] when is_record(Transitive, dependency) ->
+            {ok, Transitive}
+    end.
+
+build_transitives([], _Dependencies, Acc) ->
+    Acc;
+build_transitives([#dependency{deps=[]} = Dep|Rest],
+                  Dependencies, Acc) ->
+    build_transitives(Rest, Dependencies, [Dep|Acc]);
+build_transitives([#dependency{name=Name, deps=Deps} = Dep|Rest],
+                  Dependencies, Acc) ->
+    FilterTransitives =
+        fun(DepName) ->
+                case yank_dependency(DepName, Dependencies) of
+                    {ok, #dependency{name=N, namespace=NS, version=V}} ->
+                        {true, {N, NS, V}};
+                    {error, missing_transitive_dependency} ->
+                        io:format("Missing transitive dependency for ~s of ~s~n",
+                                  [Name, DepName]),
+                        false
+                end
+        end,
+    TransitiveDeps = lists:filtermap(FilterTransitives, Deps),
+    build_transitives(Rest, Dependencies,
+                      [Dep#dependency{deps=TransitiveDeps}|Acc]).
+
+build_transitives(Dependencies) ->
+    build_transitives(Dependencies, Dependencies, []).
+
 bootstrap([]) ->
     ok;
 bootstrap(Dirs) ->
     bootstrap(Dirs, []).
 
-bootstrap([], Acc) ->
-    io:format("~p~n", [Acc]),
+bootstrap([], Dependencies) ->
+    WithTransitives = build_transitives(Dependencies),
+    [write_onan_config(Dependency, "https://localhost:45045")
+     || Dependency <- WithTransitives],
     ok;
 bootstrap([Dir|Dirs], Acc) ->
     ok = file:set_cwd(Dir),
@@ -62,14 +98,19 @@ bootstrap([Dir|Dirs], Acc) ->
         {ok, Config} ->
             bootstrap(Dirs, [info_from_config(Dir, Config)|Acc]);
         {error, enoent} ->
-            bootstrap(Dirs, [bootstrap_from_app_src(Dir)|Acc])
+            case bootstrap_from_app_src(Dir) of
+                {ok, Dependency} when is_record(Dependency, dependency) ->
+                    bootstrap(Dirs, [Dependency|Acc]);
+                {error, not_a_dependency} ->
+                    bootstrap(Dirs, Acc)
+            end
     end.
 
 info_from_config(Dir, Config) ->
     #dependency{
        dir=Dir,
-       namespace=proplists:get_value(namespace, Config),
-       name=proplists:get_value(name, Config),
+       namespace=atom_to_list(proplists:get_value(namespace, Config)),
+       name=atom_to_list(proplists:get_value(name, Config)),
        version=proplists:get_value(vsn, Config)}.
 
 deps_from_rebar(Dir) ->
@@ -100,6 +141,23 @@ get_version(Dir, Attrs) ->
             Vsn
     end.
 
+write_onan_config(#dependency{dir=Dir,
+                              namespace=Namespace,
+                              name=ListName,
+                              version=Vsn,
+                              description=Desc,
+                              deps=Deps}, Server) ->
+    OnanConfig =
+        [{namespace, Namespace},
+         {name, ListName},
+         {vsn, Vsn},
+         {description, Desc},
+         {deps, Deps},
+         {server, Server}],
+    Format = "~p.~n~p.~n~p.~n~p.~n~p.~n~p.~n",
+    Output = io_lib:format(Format, OnanConfig),
+    file:write_file(Dir ++ "/onan.config", Output).
+
 bootstrap_from_app_src(Dir) ->
     FromSrc = filelib:wildcard("src/**/*.app.src"),
     FromEbin = filelib:wildcard("ebin/**/*.app.src"),
@@ -111,7 +169,8 @@ bootstrap_from_app_src(Dir) ->
         end,
     case lists:filtermap(FindMetadataFile, Paths) of
         [] ->
-            io:format("Not an Erlang/OTP dependency: ~p~n", [Dir]);
+            io:format("Not an Erlang/OTP dependency: ~p~n", [Dir]),
+            {error, not_a_dependency};        
         [AppSrc|_] ->
             {ok, AppSrcContents} = file:consult(AppSrc),
             [{application, Name, Attrs}] = AppSrcContents,
@@ -120,19 +179,10 @@ bootstrap_from_app_src(Dir) ->
             Vsn = get_version(Dir, Attrs),
             Desc = proplists:get_value(description, Attrs),
             Deps = deps_from_rebar(Dir),
-            OnanConfig =
-                [{namespace, Namespace},
-                 {name, ListName},
-                 {vsn, Vsn},
-                 {description, Desc},
-                 {deps, Deps},
-                 {server, "http://localhost:45045"}],
-            Format = "~p.~n~p.~n~p.~n~p.~n~p.~n~p.~n",
-            Output = io_lib:format(Format, OnanConfig),
-            file:write_file("onan.config", Output),
-            #dependency{dir=Dir,
-                        namespace=Namespace,
-                        name=Name,
-                        version=Vsn,
-                        deps=Deps}
+            {ok, #dependency{dir=Dir,
+                             namespace=Namespace,
+                             description=Desc,
+                             name=ListName,
+                             version=Vsn,
+                             deps=Deps}}
     end.
